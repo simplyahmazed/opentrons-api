@@ -318,6 +318,7 @@ class CNCDriver(object):
         while self.is_connected() and count < max_retries:
             count = count + 1
             out = self.readline_from_serial()
+            print('%%%%%%%%%%%%%%% FOOOOOOO &*&*&*&*&&&&&&')
             if out:
                 log.debug(
                     "Waited {} lines for response {}.".format(count, out)

@@ -27,8 +27,8 @@ logging_config = dict(
             'formatter': 'basic',
             'filename': LOG_FILENAME,
             'maxBytes': 5000000,
-            'level': logging.INFO,
-            'backupCount': 3
+            'level': logging.DEBUG,
+            'backupCount': 5
         },
     },
     root={
