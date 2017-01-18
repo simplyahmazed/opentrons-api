@@ -318,7 +318,6 @@ class CNCDriver(object):
         while self.is_connected() and count < max_retries:
             count = count + 1
             out = self.readline_from_serial()
-            print('%%%%%%%%%%%%%%% FOOOOOOO &*&*&*&*&&&&&&')
             if out:
                 log.debug(
                     "Waited {} lines for response {}.".format(count, out)
@@ -330,6 +329,10 @@ class CNCDriver(object):
                     log.debug(
                         "Waiting {} lines for response.".format(count)
                     )
+        log.error('Not able to read a response from the smoothie board')
+        log.error('--- Is smoothie connected: {}'.format(self.is_connected()))
+        log.error('--- Current count: {}'.format(count))
+        log.error('--- Max retries: {}'.format(max_retries))
         raise RuntimeWarning(
             'No response from serial port after {} seconds'.format(timeout))
 
