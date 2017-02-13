@@ -472,7 +472,7 @@ Be careful using the 'direct' strategy as the robot could crash into anything be
 Debugging Your Protocol
 -----------------------------
 
-There are a couple tricks that make it easy to test your protocol, without having to run it on the robot.
+There are a couple tricks that make it easy to test your protocol in Jupyter, without having to run it on the robot.
 
 Print()
 ^^^^^^^
