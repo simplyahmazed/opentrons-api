@@ -274,7 +274,7 @@ class CNCDriver(object):
         response = self.write_to_serial(command)
         return response
 
-    def write_to_serial(self, data):
+    def write_to_serial(self, data, max_tries=3):
         """
         Sends data string to serial ports
 
@@ -291,9 +291,17 @@ class CNCDriver(object):
                 raise RuntimeError(
                     'Lost connection with serial port') from e
             return self.wait_for_response()
-        else:
+        elif self.connection is None:
             msg = "No connection found."
             log.warn(msg)
+            raise RuntimeError(msg)
+        elif max_tries > 0:
+            self.toggle_port()
+            return self.write_to_serial(data, max_tries=max_tries - 1)
+        else:
+            msg = "Cannot connect to serial port {}".format(
+                self.connection.port)
+            log.error(msg)
             raise RuntimeError(msg)
 
     def wait_for_response(self, timeout=3.0, max_retries=3):
@@ -472,7 +480,7 @@ class CNCDriver(object):
         if not res:
             homing_time = 30.0  # max seconds it should take for OT1 to home
             timestamp = time.time()
-            while timestamp + homing_time = time.time():
+            while timestamp + homing_time > time.time():
                 try:
                     res = self.wait_for_response()
                     break

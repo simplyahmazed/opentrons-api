@@ -79,7 +79,8 @@ class OpenTronsTest(unittest.TestCase):
         self.assertRaises(ValueError, self.motor.set_coordinate_system, 'andy')
 
     def test_message_timeout(self):
-        self.assertRaises(RuntimeWarning, self.motor.wait_for_response)
+        from opentrons.drivers.motor import SerialTimeout
+        self.assertRaises(SerialTimeout, self.motor.wait_for_response)
 
     def test_set_plunger_speed(self):
         self.motor.set_plunger_speed(400, 'a')
