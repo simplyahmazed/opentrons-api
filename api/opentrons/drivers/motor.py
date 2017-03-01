@@ -27,6 +27,10 @@ CONFIG_FILE_PATH = os.path.join(CONFIG_DIR_PATH, 'smoothie-config.ini')
 log = get_logger(__name__)
 
 
+class SerialTimeout(Exception):
+    pass
+
+
 class CNCDriver(object):
 
     """
@@ -270,7 +274,7 @@ class CNCDriver(object):
         response = self.write_to_serial(command)
         return response
 
-    def write_to_serial(self, data, max_tries=10, try_interval=0.2):
+    def write_to_serial(self, data):
         """
         Sends data string to serial ports
 
@@ -284,48 +288,33 @@ class CNCDriver(object):
                 self.connection.write(str(data).encode())
             except Exception as e:
                 self.disconnect()
-                raise RuntimeError('Lost connection with serial port') from e
+                raise RuntimeError(
+                    'Lost connection with serial port') from e
             return self.wait_for_response()
-        elif self.connection is None:
+        else:
             msg = "No connection found."
             log.warn(msg)
             raise RuntimeError(msg)
-        elif max_tries > 0:
-            self.toggle_port()
-            return self.write_to_serial(
-                data, max_tries=max_tries - 1, try_interval=try_interval
-            )
-        else:
-            msg = "Cannot connect to serial port {}".format(
-                self.connection.port)
-            log.error(msg)
-            raise RuntimeError(msg)
 
-    def wait_for_response(self, timeout=20.0):
+    def wait_for_response(self, timeout=3.0, max_retries=3):
         """
         Repeatedly reads from serial port until data is received,
         or timeout is exceeded
 
         Raises RuntimeWarning() if no response was recieved before timeout
         """
-        count = 0
-        max_retries = int(timeout / self.serial_timeout)
-        while self.is_connected() and count < max_retries:
-            count = count + 1
+        count = int(timeout / self.serial_timeout)
+        while self.is_connected() and count > 0:
+            count -= 1
             out = self.readline_from_serial()
             if out:
-                log.debug(
-                    "Waited {} lines for response {}.".format(count, out)
-                )
+                log.debug("Got response {}.".format(out))
                 return out
-            else:
-                if count == 1 or count % 10 == 0:
-                    # Don't log all the time; gets spammy.
-                    log.debug(
-                        "Waiting {} lines for response.".format(count)
-                    )
-        raise RuntimeWarning(
-            'No response from serial port after {} seconds'.format(timeout))
+        if max_retries > 0:
+            self.toggle_port()
+            return self.wait_for_response(max_retries=max_retries - 1)
+        else:
+            raise SerialTimeout('Serial port timed out')
 
     def flush_port(self):
         while self.connection.readline():
@@ -477,9 +466,18 @@ class CNCDriver(object):
         res = None
         try:
             res = self.send_command(self.HOME + axis_to_home)
-        except Exception:
-            raise RuntimeWarning(
-                'HOMING ERROR: Check switches are being pressed and connected')
+        except SerialTimeout:
+            pass
+
+        if not res:
+            homing_time = 30.0  # max seconds it should take for OT1 to home
+            timestamp = time.time()
+            while timestamp + homing_time = time.time():
+                try:
+                    res = self.wait_for_response()
+                    break
+                except SerialTimeout:
+                    pass
         if res == b'ok':
             # the axis aren't necessarily set to 0.0
             # values after homing, so force it
@@ -498,7 +496,8 @@ class CNCDriver(object):
             trace.EventBroker.get_instance().notify(arguments)
             return self.set_position(**pos_args)
         else:
-            return False
+            raise RuntimeWarning(
+                'HOMING ERROR: Check switches are being pressed and connected')
 
     def wait(self, delay_time):
         start_time = time.time()
