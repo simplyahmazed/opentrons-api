@@ -569,7 +569,7 @@ def create_step_list():
             'channels': instrument.channels,
             'placeables': [
                 {
-                    'type': container.get_type(),
+                    'type': 'plate',
                     'label': container.get_name(),
                     'slot': container.get_parent().get_name()
                 }
