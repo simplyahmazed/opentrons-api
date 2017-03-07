@@ -6,6 +6,7 @@ import sys
 import threading
 import time
 import traceback
+import requests
 
 import dill
 import flask
@@ -22,7 +23,6 @@ from opentrons.util.singleton import Singleton
 
 sys.path.insert(0, os.path.abspath('..'))  # NOQA
 from opentrons.server import helpers
-from opentrons.server.process_manager import run_once
 
 
 TEMPLATES_FOLDER = os.path.join(helpers.get_frozen_root() or '', 'templates')
@@ -38,7 +38,7 @@ app = Flask(__name__,
 CORS(app)
 app.jinja_env.autoescape = False
 app.config['ALLOWED_EXTENSIONS'] = set(['json', 'py'])
-socketio = SocketIO(app, async_mode='gevent')
+socketio = SocketIO(app)
 
 filename = "N/A"
 last_modified = "N/A"
@@ -952,26 +952,28 @@ def log_after_request(response):
     return response
 
 
-def start():
-    data_dir = os.environ.get('APP_DATA_DIR', os.getcwd())
+def start(host='localhost', port=31950):
     IS_DEBUG = os.environ.get('DEBUG', '').lower() == 'true'
     if not IS_DEBUG:
-        run_once(data_dir)
-    _start_connection_watcher()
+        try:
+            requests.get(
+                'http://{}:{}/robot/versions'.format(
+                    host, port
+                )
+            )
+            print('Silently exiting due to previous running process')
+            sys.exit()
+        except requests.exceptions.ConnectionError as e:
+            pass
 
-    from opentrons.server import log  # NOQA
-    lg = logging.getLogger('opentrons-app')
-    lg.info('Starting Flask Server')
-    [app.logger.addHandler(handler) for handler in lg.handlers]
+    _start_connection_watcher()
 
     socketio.run(
         app,
         debug=False,
-        logger=False,
         use_reloader=False,
         log_output=False,
-        engineio_logger=False,
-        port=31950
+        port=port
     )
 
 

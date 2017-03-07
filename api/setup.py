@@ -35,9 +35,7 @@ INSTALL_REQUIRES = [
     'pyserial==3.2.1',
     'Flask==0.10.1',
     'Flask-SocketIO==2.5',
-    'Flask-Cors==3.0.2',
-    'psutil==4.3.1',
-    'gevent==1.1.2']
+    'Flask-Cors==3.0.2']
 TEST_SUITE = 'nose.collector'
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -75,5 +73,8 @@ if __name__ == "__main__":
         install_requires=INSTALL_REQUIRES,
         cmdclass=versioneer.get_cmdclass(),
         include_package_data=True,
+        package_data={'opentrons': [
+            'opentrons/config/containers/*.json',
+            'opentrons/config/smoothie/*.ini']},
         test_suite=TEST_SUITE
     )
