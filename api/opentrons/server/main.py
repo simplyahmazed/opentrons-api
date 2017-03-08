@@ -569,11 +569,11 @@ def create_step_list():
             'channels': instrument.channels,
             'placeables': [
                 {
-                    'type': 'plate',
+                    'type': container.get_type(),
                     'label': container.get_name(),
                     'slot': container.get_parent().get_name()
                 }
-                for container in _get_all_containers()
+                for container in _get_unique_containers(instrument)
             ]
         } for instrument in _get_all_pipettes()]
     except Exception as e:
