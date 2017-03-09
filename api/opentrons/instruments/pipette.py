@@ -239,7 +239,8 @@ class Pipette(Instrument):
     def move_to(self,
                 location,
                 strategy='arc',
-                enqueue=True):
+                enqueue=True,
+                **kwargs):
         """
         Move this :any:`Pipette` to a :any:`Placeable` on the :any:`Deck`
 
@@ -278,7 +279,8 @@ class Pipette(Instrument):
             location,
             instrument=self,
             strategy=strategy,
-            enqueue=enqueue)
+            enqueue=enqueue,
+            **kwargs)
 
         return self
 
@@ -382,10 +384,9 @@ class Pipette(Instrument):
             destination = bottom - distance
 
             speed = self.speeds['aspirate'] * rate
+            self.motor.speed(speed)
 
             self._position_for_aspirate(location, plunger_empty)
-
-            self.motor.speed(speed)
             self.motor.move(destination)
 
         # if volume is specified as 0uL, then do nothing
@@ -493,15 +494,15 @@ class Pipette(Instrument):
             nonlocal volume
             nonlocal rate
 
-            self.move_to(location, strategy='arc', enqueue=False)
-
             distance = self._plunge_distance(self.current_volume)
             bottom = self._get_plunger_position('bottom')
             destination = bottom - distance
 
             speed = self.speeds['dispense'] * rate
-
             self.motor.speed(speed)
+
+            if location:
+                self.move_to(location, strategy='arc', enqueue=False)
             self.motor.move(destination)
 
         # if volume is specified as 0uL, then do nothing
@@ -528,10 +529,12 @@ class Pipette(Instrument):
         # first go to the destination
         if location:
             placeable, _ = containers.unpack_location(location)
+            t_kwargs = {}
+            if plunger_empty:
+                t_kwargs['plunger'] = (
+                    self.axis, self._get_plunger_position('bottom'))
             self.move_to(placeable.top(), strategy='arc', enqueue=False)
-
-        # setup the plunger above the liquid
-        if plunger_empty:
+        elif plunger_empty:
             self.motor.move(self._get_plunger_position('bottom'))
 
         # then go inside the location
@@ -987,7 +990,12 @@ class Pipette(Instrument):
             nonlocal location
 
             if location:
-                self.move_to(location, strategy='arc', enqueue=False)
+                self.move_to(
+                    location,
+                    strategy='arc',
+                    enqueue=False,
+                    plunger=(self.axis, self._get_plunger_position('bottom'))
+                )
 
             tip_plunge = 6
 
@@ -1071,12 +1079,15 @@ class Pipette(Instrument):
             nonlocal location
 
             if location:
-                self.move_to(location, strategy='arc', enqueue=False)
+                self.move_to(
+                    location,
+                    strategy='arc',
+                    enqueue=False,
+                    plunger=(self.axis, self._get_plunger_position('bottom'))
+                )
 
             self.motor.move(self._get_plunger_position('drop_tip'))
             self.motor.home()
-
-            self.motor.move(self._get_plunger_position('bottom'))
 
         _description = "Drop_tip {}".format(
             ('at ' + humanize_location(location) if location else '')

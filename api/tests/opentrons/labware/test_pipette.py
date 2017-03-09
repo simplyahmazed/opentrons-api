@@ -364,7 +364,7 @@ class PipetteTest(unittest.TestCase):
         current_pos = self.robot._driver.get_plunger_positions()['current']
         self.assertDictEqual(
             current_pos,
-            {'a': 0, 'b': 10.0}
+            {'a': 0, 'b': 0.0}
         )
 
     def test_delay(self):
@@ -1390,8 +1390,16 @@ class PipetteTest(unittest.TestCase):
         self.assertEqual(
             self.p200.move_to.mock_calls,
             [
-                self.build_move_to_bottom(self.tiprack1[0]),
-                self.build_move_to_bottom(self.tiprack1[1])
+                mock.call(
+                    self.tiprack1[0].bottom(),
+                    enqueue=False,
+                    strategy='arc',
+                    plunger=('b', 10)),
+                mock.call(
+                    self.tiprack1[1].bottom(),
+                    enqueue=False,
+                    strategy='arc',
+                    plunger=('b', 10))
             ]
         )
 
@@ -1456,9 +1464,17 @@ class PipetteTest(unittest.TestCase):
 
         expected = []
         for i in range(0, total_tips_per_plate):
-            expected.append(self.build_move_to_bottom(self.tiprack1[i]))
+            expected.append(mock.call(
+                self.tiprack1[i].bottom(),
+                enqueue=False,
+                strategy='arc',
+                plunger=('b', 10)))
         for i in range(0, total_tips_per_plate):
-            expected.append(self.build_move_to_bottom(self.tiprack2[i]))
+            expected.append(mock.call(
+                self.tiprack2[i].bottom(),
+                enqueue=False,
+                strategy='arc',
+                plunger=('b', 10)))
 
         self.assertEqual(
             self.p200.move_to.mock_calls,
@@ -1494,9 +1510,17 @@ class PipetteTest(unittest.TestCase):
 
         expected = []
         for i in range(0, 12):
-            expected.append(self.build_move_to_bottom(self.tiprack1.rows[i]))
+            expected.append(mock.call(
+                self.tiprack1.rows[i].bottom(),
+                enqueue=False,
+                strategy='arc',
+                plunger=('b', 10)))
         for i in range(0, 12):
-            expected.append(self.build_move_to_bottom(self.tiprack2.rows[i]))
+            expected.append(mock.call(
+                self.tiprack2.rows[i].bottom(),
+                enqueue=False,
+                strategy='arc',
+                plunger=('b', 10)))
 
         self.assertEqual(
             p200_multi.move_to.mock_calls,
@@ -1540,10 +1564,11 @@ class PipetteTest(unittest.TestCase):
             self.p200.move_to.mock_calls,
             [
                 mock.call(
-                    self.tiprack1[0].bottom(), enqueue=False, strategy='arc'),
+                    self.tiprack1[0].bottom(), enqueue=False, strategy='arc', plunger=('b', 10)),
                 mock.call(
                     self.trash[0].bottom(self.p200._drop_tip_offset),
                     enqueue=False,
-                    strategy='arc')
+                    strategy='arc',
+                    plunger=('b', 10))
             ]
         )

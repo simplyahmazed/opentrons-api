@@ -588,6 +588,10 @@ class Robot(object, metaclass=Singleton):
         if 'now' in kwargs:
             enqueue = not kwargs.get('now')
 
+        plunger_axis, plunger_coordinate = None, None
+        if kwargs.get('plunger'):
+            plunger_axis, plunger_coordinate = kwargs['plunger']
+
         placeable, coordinates = containers.unpack_location(location)
 
         if instrument:
@@ -600,14 +604,19 @@ class Robot(object, metaclass=Singleton):
         def _do():
             if strategy == 'arc':
                 arc_coords = self._create_arc(coordinates, placeable)
+                if plunger_axis:
+                    arc_coords[-1][plunger_axis] = plunger_coordinate
                 for coord in arc_coords:
-                    self._driver.move_head(**coord)
+                    self._driver.move(**coord)
             elif strategy == 'direct':
-                self._driver.move_head(
-                    x=coordinates[0],
-                    y=coordinates[1],
-                    z=coordinates[2]
-                )
+                target_kwargs = {
+                    'x': coordinates[0],
+                    'y': coordinates[1],
+                    'z': coordinates[2]
+                }
+                if plunger_axis:
+                    target_kwargs[plunger_axis] = plunger_coordinate
+                self._driver.move(**target_kwargs)
             else:
                 raise RuntimeError(
                     'Unknown move strategy: {}'.format(strategy))
