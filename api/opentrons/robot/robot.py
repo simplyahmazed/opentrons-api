@@ -588,16 +588,16 @@ class Robot(object, metaclass=Singleton):
         if 'now' in kwargs:
             enqueue = not kwargs.get('now')
 
-        plunger_axis, plunger_coordinate = None, None
-        if kwargs.get('plunger'):
-            plunger_axis, plunger_coordinate = kwargs['plunger']
-
         placeable, coordinates = containers.unpack_location(location)
 
+        plunger_axis, plunger_coordinate = None, None
         if instrument:
             coordinates = instrument.calibrator.convert(
                 placeable,
                 coordinates)
+            if kwargs.get('plunger'):
+                plunger_axis = instrument.axis
+                plunger_coordinate = kwargs['plunger']
         else:
             coordinates += placeable.coordinates(placeable.get_deck())
 

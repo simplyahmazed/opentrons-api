@@ -994,8 +994,11 @@ class Pipette(Instrument):
                     location,
                     strategy='arc',
                     enqueue=False,
-                    plunger=(self.axis, self._get_plunger_position('bottom'))
+                    plunger=self._get_plunger_position('top')
                 )
+
+            self.motor.home()
+            self.motor.move(self._get_plunger_position('top'))
 
             tip_plunge = 6
 
@@ -1083,11 +1086,10 @@ class Pipette(Instrument):
                     location,
                     strategy='arc',
                     enqueue=False,
-                    plunger=(self.axis, self._get_plunger_position('bottom'))
+                    plunger=self._get_plunger_position('bottom')
                 )
 
             self.motor.move(self._get_plunger_position('drop_tip'))
-            self.motor.home()
 
         _description = "Drop_tip {}".format(
             ('at ' + humanize_location(location) if location else '')
