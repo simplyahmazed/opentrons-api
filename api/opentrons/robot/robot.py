@@ -519,7 +519,7 @@ class Robot(object, metaclass=Singleton):
     def move_plunger(self, *args, **kwargs):
         self._driver.move_plunger(*args, **kwargs)
 
-    def head_speed(self, rate):
+    def head_speed(self, *args, **kwargs):
         """
         Set the XY axis speeds of the robot, set in millimeters per minute
 
@@ -540,7 +540,7 @@ class Robot(object, metaclass=Singleton):
         >>> robot.head_speed(4500)
         >>> robot.move_head(x=200, y=200)
         """
-        self._driver.set_head_speed(rate)
+        self._driver.set_head_speed(*args, **kwargs)
 
     @traceable('move-to')
     def move_to(self, location, instrument=None, strategy='arc', **kwargs):

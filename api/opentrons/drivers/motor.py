@@ -136,6 +136,8 @@ class CNCDriver(object):
 
         self.head_speed = int(
             self.saved_settings['state'].get('head_speed', 3000))
+        self.z_head_speed = int(
+            self.saved_settings['state'].get('z_head_speed', 1600))
         self.plunger_speed = json.loads(
             self.saved_settings['state'].get(
                 'plunger_speed', '{"a":300,"b",300}'))
@@ -378,6 +380,10 @@ class CNCDriver(object):
     def move(self, mode='absolute', **kwargs):
         self.set_coordinate_system(mode)
 
+        this_move_speed = self.head_speed
+        if 'z' in kwargs or 'Z' in kwargs:
+            this_move_speed = self.z_head_speed
+
         current = self.get_head_position()['target']
         log.debug('Current Head Position: {}'.format(current))
         target_point = {
@@ -397,7 +403,7 @@ class CNCDriver(object):
         args = {axis.upper(): kwargs.get(axis)
                 for axis in 'xyzab'
                 if axis in kwargs}
-        args.update({"F": self.head_speed})
+        args.update({"F": this_move_speed})
         args.update({"a": self.plunger_speed['a']})
         args.update({"b": self.plunger_speed['b']})
 
@@ -588,10 +594,16 @@ class CNCDriver(object):
         current_steps_per_mm = round(current_steps_per_mm, 2)
         return self.set_steps_per_mm(axis, current_steps_per_mm)
 
-    def set_head_speed(self, rate=None):
+    def set_head_speed(self, rate=None, z=None):
         if rate:
             self.head_speed = rate
             self.saved_settings['state']['head_speed'] = str(self.head_speed)
+            with open(CONFIG_FILE_PATH, 'w') as configfile:
+                self.saved_settings.write(configfile)
+        if z:
+            self.z_head_speed = z
+            self.saved_settings['state']['z_head_speed'] = str(
+                self.z_head_speed)
             with open(CONFIG_FILE_PATH, 'w') as configfile:
                 self.saved_settings.write(configfile)
         return True
