@@ -1090,6 +1090,7 @@ class Pipette(Instrument):
                 )
 
             self.motor.move(self._get_plunger_position('drop_tip'))
+            self.motor.move(self._get_plunger_position('bottom'))
 
         _description = "Drop_tip {}".format(
             ('at ' + humanize_location(location) if location else '')

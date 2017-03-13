@@ -364,7 +364,7 @@ class PipetteTest(unittest.TestCase):
         current_pos = self.robot._driver.get_plunger_positions()['current']
         self.assertDictEqual(
             current_pos,
-            {'a': 0, 'b': 0.0}
+            {'a': 0, 'b': 10.0}
         )
 
     def test_delay(self):
@@ -1394,12 +1394,12 @@ class PipetteTest(unittest.TestCase):
                     self.tiprack1[0].bottom(),
                     enqueue=False,
                     strategy='arc',
-                    plunger=('b', 10)),
+                    plunger=0),
                 mock.call(
                     self.tiprack1[1].bottom(),
                     enqueue=False,
                     strategy='arc',
-                    plunger=('b', 10))
+                    plunger=0)
             ]
         )
 
@@ -1468,13 +1468,13 @@ class PipetteTest(unittest.TestCase):
                 self.tiprack1[i].bottom(),
                 enqueue=False,
                 strategy='arc',
-                plunger=('b', 10)))
+                plunger=0))
         for i in range(0, total_tips_per_plate):
             expected.append(mock.call(
                 self.tiprack2[i].bottom(),
                 enqueue=False,
                 strategy='arc',
-                plunger=('b', 10)))
+                plunger=0))
 
         self.assertEqual(
             self.p200.move_to.mock_calls,
@@ -1514,13 +1514,13 @@ class PipetteTest(unittest.TestCase):
                 self.tiprack1.rows[i].bottom(),
                 enqueue=False,
                 strategy='arc',
-                plunger=('b', 10)))
+                plunger=0))
         for i in range(0, 12):
             expected.append(mock.call(
                 self.tiprack2.rows[i].bottom(),
                 enqueue=False,
                 strategy='arc',
-                plunger=('b', 10)))
+                plunger=0))
 
         self.assertEqual(
             p200_multi.move_to.mock_calls,
@@ -1564,11 +1564,11 @@ class PipetteTest(unittest.TestCase):
             self.p200.move_to.mock_calls,
             [
                 mock.call(
-                    self.tiprack1[0].bottom(), enqueue=False, strategy='arc', plunger=('b', 10)),
+                    self.tiprack1[0].bottom(), enqueue=False, strategy='arc', plunger=0),
                 mock.call(
                     self.trash[0].bottom(self.p200._drop_tip_offset),
                     enqueue=False,
                     strategy='arc',
-                    plunger=('b', 10))
+                    plunger=10)
             ]
         )
