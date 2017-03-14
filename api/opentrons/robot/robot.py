@@ -542,6 +542,18 @@ class Robot(object, metaclass=Singleton):
         """
         self._driver.set_head_speed(*args, **kwargs)
 
+    def speed(self, *args, **kwargs):
+        """
+        Set the speeds of each axis on the robot, set in millimeters per minute
+        """
+        def _do():
+            self._driver.set_head_speed(*args, **kwargs)
+        _description = 'Setting speeds: '.format(kwargs)
+        if kwargs.get('enqueue', True):
+            self.add_command(Command(do=_do, description=_description))
+        else:
+            self._driver.set_head_speed(*args, **kwargs)
+
     @traceable('move-to')
     def move_to(self, location, instrument=None, strategy='arc', **kwargs):
         """

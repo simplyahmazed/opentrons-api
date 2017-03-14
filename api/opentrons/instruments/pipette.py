@@ -989,18 +989,24 @@ class Pipette(Instrument):
         def _do():
             nonlocal location
 
+            tip_plunge = 6
+
             if location:
+                placeable, _ = containers.unpack_location(location)
                 self.move_to(
-                    location,
+                    placeable.bottom(tip_plunge),
                     strategy='arc',
                     enqueue=False,
                     plunger=self._get_plunger_position('top')
                 )
 
+            self.move_to(
+                location,
+                strategy='direct',
+                enqueue=False
+            )
             self.motor.home()
             self.motor.move(self._get_plunger_position('top'))
-
-            tip_plunge = 6
 
             self.robot.move_head(z=tip_plunge, mode='relative')
             self.robot.move_head(z=-tip_plunge - 1, mode='relative')
